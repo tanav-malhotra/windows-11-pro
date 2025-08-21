@@ -1,7 +1,7 @@
 # Windows 11 Pro Installation & Activation Scripts
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-orange.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Windows](https://img.shields.io/badge/Windows-11-blue.svg)](https://www.microsoft.com/windows)
+[![Windows](https://img.shields.io/badge/Windows-11-0078D4.svg)](https://www.microsoft.com/windows)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![Warning](https://img.shields.io/badge/⚠️-Legal%20Risk-red.svg)](https://www.microsoft.com/licensing)
 

@@ -67,8 +67,11 @@ echo  - Internet connection required for KMS server access
 echo  - Administrator privileges (already verified)
 echo.
 
-:: Check if Windows 11 Pro is installed
+:: Check if Windows 11 Pro is installed using multiple detection methods
 echo [CHECK] Verifying Windows 11 Pro installation...
+
+:: Method 1: Check using systeminfo
+echo [INFO] Checking system information...
 for /f "tokens=2 delims=:" %%i in ('systeminfo ^| findstr /i "OS Name"') do set os_name=%%i
 for /f "tokens=2 delims=:" %%i in ('systeminfo ^| findstr /i "OS Version"') do set os_version=%%i
 
@@ -76,12 +79,49 @@ echo Current OS: !os_name!
 echo Version: !os_version!
 echo.
 
+:: Method 2: Check using wmic (more reliable for recent changes)
+echo [INFO] Double-checking with Windows Management Interface...
+for /f "tokens=2 delims==" %%i in ('wmic os get Caption /value ^| findstr "="') do set wmic_os=%%i
+echo WMIC OS: !wmic_os!
+echo.
+
+:: Method 3: Check using dism
+echo [INFO] Checking current Windows edition with DISM...
+for /f "tokens=3" %%i in ('dism /online /get-currentedition ^| findstr "Current Edition"') do set current_edition=%%i
+echo Current Edition: !current_edition!
+echo.
+
+:: Check if Pro is detected by any method
+set pro_detected=0
+
 echo !os_name! | findstr /i "Pro" >nul
-if %errorlevel% neq 0 (
-    echo [ERROR] Windows 11 Pro is not detected on this system.
+if %errorlevel% equ 0 set pro_detected=1
+
+echo !wmic_os! | findstr /i "Pro" >nul
+if %errorlevel% equ 0 set pro_detected=1
+
+echo !current_edition! | findstr /i "Professional" >nul
+if %errorlevel% equ 0 set pro_detected=1
+
+if !pro_detected! equ 0 (
     echo.
-    echo Please run the install-windows-11-pro.bat script first to upgrade
-    echo to Windows 11 Pro before attempting activation.
+    echo ================================================================
+    echo [ERROR] Windows 11 Pro is not detected on this system
+    echo ================================================================
+    echo.
+    echo POSSIBLE CAUSES:
+    echo  1. Install script hasn't completed - restart may be required
+    echo  2. Windows 11 Pro installation failed
+    echo  3. System is still processing the edition change
+    echo.
+    echo WHAT TO DO:
+    echo  1. RESTART your computer if you just ran the install script
+    echo  2. Check Settings ^> System ^> About for Windows edition
+    echo  3. Re-run install-windows-11-pro.bat if Pro isn't shown
+    echo  4. Try this activation script again after restart
+    echo.
+    echo If Windows shows "Windows 11 Pro" in Settings but this script
+    echo still fails, there may be a detection issue. Contact support.
     echo.
     pause
     exit /b 1

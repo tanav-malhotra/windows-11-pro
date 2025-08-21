@@ -138,11 +138,32 @@ WHAT YOU CAN DO:
 
 ### Activation Script (`activate-windows-11-pro.bat`)
 
-1. **System Verification**: Confirms Windows 11 Pro is installed
+1. **Enhanced System Verification**: Uses 3 detection methods to confirm Windows 11 Pro
+   - SystemInfo check (traditional method)
+   - WMIC check (reliable for recent changes)
+   - DISM check (most authoritative Windows edition detection)
 2. **Product Key Installation**: Installs KMS client key (`slmgr /ipk`)
 3. **KMS Server Setup**: Configures KMS server (`slmgr /skms`)
 4. **Activation**: Attempts online activation (`slmgr /ato`)
 5. **Status Verification**: Optional activation status display
+
+#### Triple Detection System
+
+If the activation script can't detect Windows 11 Pro, it will show detailed diagnostic information:
+
+```
+[CHECK] Verifying Windows 11 Pro installation...
+[INFO] Checking system information...
+Current OS: Microsoft Windows 11 Home
+[INFO] Double-checking with Windows Management Interface...
+WMIC OS: Microsoft Windows 11 Pro  
+[INFO] Checking current Windows edition with DISM...
+Current Edition: Professional
+
+[SUCCESS] Windows 11 Pro detected!
+```
+
+This helps identify if the issue is detection-related or if the Windows upgrade actually failed.
 
 ## 🔧 Technical Details
 
@@ -231,6 +252,15 @@ WHAT YOU CAN DO:
   - Upgrade to one of the supported editions shown by the script
   - Purchase a new Windows 11 Pro license from Microsoft Store
   - Consider a clean Windows 11 Pro installation
+
+#### "Windows 11 Pro is not detected" (after install script + restart)
+- **Cause**: Windows edition upgrade may have failed or only partially completed
+- **Script Response**: Shows detection results from 3 different methods for diagnosis
+- **Solutions**:
+  - Check Settings → System → About to see if it shows "Windows 11 Pro"
+  - If it shows Pro in Settings but script fails: Detection issue (run activate script again)
+  - If it still shows Home/other edition: Re-run the install script
+  - Try manual verification: Open CMD and run `dism /online /get-currentedition`
 
 #### "Failed to install product key"
 - **Cause**: Network connectivity issues

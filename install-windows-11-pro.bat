@@ -79,6 +79,81 @@ echo.
 echo [INFO] Starting Windows 11 Pro installation process...
 echo.
 
+:: Step 0: Backup current license information
+echo [STEP 0] Backing up current Windows license information...
+echo.
+echo ----------------------------------------------------------------
+echo                  CURRENT LICENSE BACKUP
+echo ----------------------------------------------------------------
+echo.
+echo [INFO] Your current Windows license details (SAVE THIS INFO):
+
+:: Get current license info
+slmgr /dli 2>nul
+if %errorlevel% neq 0 (
+    echo [INFO] No current license information available.
+) else (
+    echo.
+    echo [INFO] Detailed license information:
+    slmgr /dlv 2>nul
+)
+
+echo.
+echo [INFO] Attempting to retrieve FULL product key...
+
+:: Try to get full product key using PowerShell
+powershell -Command "try { (Get-WmiObject -query 'select * from SoftwareLicensingService').OA3xOriginalProductKey } catch { 'OEM Key not found in UEFI' }" >"%temp%\oa3_key.txt" 2>nul
+set /p oa3_key=<"%temp%\oa3_key.txt"
+del "%temp%\oa3_key.txt" >nul 2>&1
+
+if not "!oa3_key!"=="OEM Key not found in UEFI" if not "!oa3_key!"=="" (
+    echo FULL OEM Product Key: !oa3_key!
+    echo ^(This is your original Windows key from UEFI/BIOS^)
+) else (
+    echo [INFO] Attempting alternative key extraction...
+    
+    :: Try alternative PowerShell method for installed key
+    powershell -Command "$key = (Get-WmiObject -Class SoftwareLicensingService).OA3xOriginalProductKey; if ($key) { $key } else { 'No OEM key available' }" >"%temp%\alt_key.txt" 2>nul
+    set /p alt_key=<"%temp%\alt_key.txt"
+    del "%temp%\alt_key.txt" >nul 2>&1
+    
+    if not "!alt_key!"=="No OEM key available" if not "!alt_key!"=="" (
+        echo FULL Product Key: !alt_key!
+    ) else (
+        echo [WARNING] Could not retrieve full product key automatically.
+        echo.
+        echo MANUAL KEY RETRIEVAL OPTIONS:
+        echo  1. Check Windows Settings ^> System ^> About ^> Product Key
+        echo  2. Look for Windows sticker on your computer
+        echo  3. Check email receipt if you purchased Windows digitally
+        echo  4. Use tool like ProduKey ^(search "ProduKey Nirsoft"^)
+        echo  5. For OEM systems: Key may be embedded in UEFI ^(above methods^)
+        echo.
+        echo IMPORTANT: The partial key shown above may be all that's available
+        echo if this is a volume license or KMS-activated system.
+    )
+)
+
+echo.
+echo ----------------------------------------------------------------
+echo IMPORTANT: The above information shows your current Windows
+echo license. Save this information in case you need to restore
+echo your original license later!
+echo ----------------------------------------------------------------
+echo.
+
+set /p backup_confirm="Have you saved the license information above? (Y/N): "
+if /i "!backup_confirm!" neq "Y" (
+    echo.
+    echo Please copy/screenshot the license information above before continuing.
+    echo Press any key when ready...
+    pause >nul
+)
+
+echo.
+echo [INFO] Proceeding with Windows 11 Pro installation...
+echo.
+
 :: Step 1: Check if edition is upgradeable
 echo [STEP 1] Checking if your Windows edition can be upgraded to Pro...
 echo.

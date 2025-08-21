@@ -70,24 +70,24 @@ echo.
 :: Check if Windows 11 Pro is installed using multiple detection methods
 echo [CHECK] Verifying Windows 11 Pro installation...
 
-:: Method 1: Check using systeminfo
+:: Method 1: Check using systeminfo (improved parsing)
 echo [INFO] Checking system information...
-for /f "tokens=2 delims=:" %%i in ('systeminfo ^| findstr /i "OS Name"') do set os_name=%%i
-for /f "tokens=2 delims=:" %%i in ('systeminfo ^| findstr /i "OS Version"') do set os_version=%%i
+for /f "tokens=2* delims=: " %%i in ('systeminfo ^| findstr /c:"OS Name"') do set os_name=%%i %%j
+for /f "tokens=2* delims=: " %%i in ('systeminfo ^| findstr /c:"OS Version"') do set os_version=%%i %%j
 
 echo Current OS: !os_name!
 echo Version: !os_version!
 echo.
 
-:: Method 2: Check using wmic (more reliable for recent changes)
-echo [INFO] Double-checking with Windows Management Interface...
-for /f "tokens=2 delims==" %%i in ('wmic os get Caption /value ^| findstr "="') do set wmic_os=%%i
-echo WMIC OS: !wmic_os!
+:: Method 2: Check using PowerShell (WMIC replacement)
+echo [INFO] Double-checking with PowerShell WMI...
+for /f "usebackq delims=" %%i in (`powershell -Command "Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty Caption"`) do set ps_os=%%i
+echo PowerShell OS: !ps_os!
 echo.
 
-:: Method 3: Check using dism
+:: Method 3: Check using dism (improved parsing)
 echo [INFO] Checking current Windows edition with DISM...
-for /f "tokens=3" %%i in ('dism /online /get-currentedition ^| findstr "Current Edition"') do set current_edition=%%i
+for /f "tokens=3*" %%i in ('dism /online /get-currentedition ^| findstr /c:"Current Edition"') do set current_edition=%%i
 echo Current Edition: !current_edition!
 echo.
 
@@ -97,7 +97,7 @@ set pro_detected=0
 echo !os_name! | findstr /i "Pro" >nul
 if %errorlevel% equ 0 set pro_detected=1
 
-echo !wmic_os! | findstr /i "Pro" >nul
+echo !ps_os! | findstr /i "Pro" >nul
 if %errorlevel% equ 0 set pro_detected=1
 
 echo !current_edition! | findstr /i "Professional" >nul
@@ -128,6 +128,23 @@ if !pro_detected! equ 0 (
 )
 
 echo [SUCCESS] Windows 11 Pro detected!
+echo.
+
+:: Display current license status before activation
+echo ----------------------------------------------------------------
+echo              CURRENT LICENSE STATUS (Pre-Activation)
+echo ----------------------------------------------------------------
+echo.
+echo [INFO] Your current Windows license status:
+slmgr /dli 2>nul
+echo.
+echo [INFO] Activation details:
+slmgr /xpr 2>nul
+echo.
+echo ----------------------------------------------------------------
+echo The above shows your current license state BEFORE activation.
+echo This information may be useful for troubleshooting.
+echo ----------------------------------------------------------------
 echo.
 
 set /p confirm="Do you want to proceed with activation? (Y/N): "

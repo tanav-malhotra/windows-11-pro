@@ -95,15 +95,19 @@ activate-windows-11-pro.bat
 ### Installation Script (`install-windows-11-pro.bat`)
 
 1. **Privilege Check**: Verifies administrator rights
-2. **Compatibility Check**: Scans your Windows edition for Pro upgrade support
+2. **License Backup**: Displays and saves current Windows license information
+   - Shows current product key and edition details
+   - Prompts user to save this information for potential restoration
+   - Critical for troubleshooting or reverting changes
+3. **Compatibility Check**: Scans your Windows edition for Pro upgrade support
    - ✅ **If compatible**: Shows all available upgrade editions and proceeds
    - ❌ **If incompatible**: Displays supported editions and alternative solutions
-3. **Key Removal**: Removes existing product keys (`slmgr.vbs /upk`)
-4. **Registry Cleanup**: Clears product key from registry (`slmgr.vbs /cpky`)
-5. **KMS Reset**: Clears existing KMS settings (`slmgr.vbs /ckms`)
-6. **Service Setup**: Configures License Manager and Windows Update services
-7. **Edition Upgrade**: Installs Windows 11 Pro using generic product key
-8. **Restart Prompt**: Guides user through restart process
+4. **Key Removal**: Removes existing product keys (`slmgr.vbs /upk`)
+5. **Registry Cleanup**: Clears product key from registry (`slmgr.vbs /cpky`)
+6. **KMS Reset**: Clears existing KMS settings (`slmgr.vbs /ckms`)
+7. **Service Setup**: Configures License Manager and Windows Update services
+8. **Edition Upgrade**: Installs Windows 11 Pro using generic product key
+9. **Restart Prompt**: Guides user through restart process
 
 #### Smart Edition Detection
 
@@ -139,13 +143,17 @@ WHAT YOU CAN DO:
 ### Activation Script (`activate-windows-11-pro.bat`)
 
 1. **Enhanced System Verification**: Uses 3 detection methods to confirm Windows 11 Pro
-   - SystemInfo check (traditional method)
-   - WMIC check (reliable for recent changes)
+   - SystemInfo check (traditional method, improved parsing)
+   - PowerShell WMI check (modern replacement for deprecated WMIC)
    - DISM check (most authoritative Windows edition detection)
-2. **Product Key Installation**: Installs KMS client key (`slmgr /ipk`)
-3. **KMS Server Setup**: Configures KMS server (`slmgr /skms`)
-4. **Activation**: Attempts online activation (`slmgr /ato`)
-5. **Status Verification**: Optional activation status display
+2. **License Status Display**: Shows current Windows license state before activation
+   - Current product key and edition information
+   - Activation status and expiration details
+   - Useful for troubleshooting and comparison
+3. **Product Key Installation**: Installs KMS client key (`slmgr /ipk`)
+4. **KMS Server Setup**: Configures KMS server (`slmgr /skms`)
+5. **Activation**: Attempts online activation (`slmgr /ato`)
+6. **Status Verification**: Optional activation status display
 
 #### Triple Detection System
 
@@ -155,8 +163,8 @@ If the activation script can't detect Windows 11 Pro, it will show detailed diag
 [CHECK] Verifying Windows 11 Pro installation...
 [INFO] Checking system information...
 Current OS: Microsoft Windows 11 Home
-[INFO] Double-checking with Windows Management Interface...
-WMIC OS: Microsoft Windows 11 Pro  
+[INFO] Double-checking with PowerShell WMI...
+PowerShell OS: Microsoft Windows 11 Pro  
 [INFO] Checking current Windows edition with DISM...
 Current Edition: Professional
 
@@ -164,6 +172,67 @@ Current Edition: Professional
 ```
 
 This helps identify if the issue is detection-related or if the Windows upgrade actually failed.
+
+#### License Backup & Status Display
+
+Both scripts now provide comprehensive license information:
+
+**Install Script - License Backup:**
+```
+----------------------------------------------------------------
+                  CURRENT LICENSE BACKUP
+----------------------------------------------------------------
+
+Your current Windows license details (SAVE THIS INFO):
+Name: Windows 11 Home
+Description: Windows Operating System - Windows 11, OEM_DM channel
+Partial Product Key: XXXXX-NKJV6
+License Status: Licensed
+
+Attempting to retrieve FULL product key...
+FULL OEM Product Key: XXXXX-XXXXX-XXXXX-XXXXX-NKJV6
+(This is your original Windows key from UEFI/BIOS)
+
+Have you saved the license information above? (Y/N):
+```
+
+**Activate Script - Pre-Activation Status:**
+```
+----------------------------------------------------------------
+              CURRENT LICENSE STATUS (Pre-Activation)  
+----------------------------------------------------------------
+
+Your current Windows license status:
+Name: Windows 11 Pro
+Description: Windows Operating System - Windows 11, VOLUME_KMSCLIENT channel  
+Partial Product Key: XXXXX-T83GX
+License Status: Initial grace period
+
+The above shows your current license state BEFORE activation.
+```
+
+#### Full Product Key Recovery
+
+The install script attempts to retrieve your **complete 25-character product key** using multiple methods:
+
+| Method | What It Retrieves | When Available |
+|--------|------------------|----------------|
+| **UEFI/BIOS** | OEM keys embedded in hardware | Pre-built computers (Dell, HP, etc.) |
+| **PowerShell WMI** | Currently installed key | Most Windows installations |
+| **Registry Query** | Active license key | Volume/Enterprise licenses |
+
+**If automatic extraction fails**, the script provides these options:
+
+✅ **Windows Settings**: System → About → Product Key  
+✅ **Physical Sticker**: Check your computer case/laptop  
+✅ **Email Receipt**: Digital purchase confirmations  
+✅ **ProduKey Tool**: Free utility by Nirsoft  
+✅ **UEFI Embedded**: Pre-installed on most modern PCs
+
+**Why Only Partial Keys Sometimes?**
+- **Security**: Windows hides full keys for protection
+- **Volume Licensing**: Corporate keys may be centrally managed  
+- **KMS Systems**: Already activated systems may not show original keys
 
 ## 🔧 Technical Details
 
@@ -253,6 +322,16 @@ This helps identify if the issue is detection-related or if the Windows upgrade 
   - Purchase a new Windows 11 Pro license from Microsoft Store
   - Consider a clean Windows 11 Pro installation
 
+#### "Could not retrieve full product key automatically"
+- **Cause**: Windows key is not stored in UEFI or is a volume/KMS license
+- **Script Response**: Shows manual recovery options and alternative methods
+- **Solutions**:
+  - **OEM Systems**: Key is usually embedded in UEFI (script will find it)
+  - **Retail Keys**: Check email receipt or Windows Settings → About
+  - **Physical Sticker**: Look on computer case or under laptop
+  - **ProduKey Tool**: Download free utility from Nirsoft
+  - **Command Line**: Run `wmic path softwarelicensingservice get OA3xOriginalProductKey`
+
 #### "Windows 11 Pro is not detected" (after install script + restart)
 - **Cause**: Windows edition upgrade may have failed or only partially completed
 - **Script Response**: Shows detection results from 3 different methods for diagnosis
@@ -261,6 +340,15 @@ This helps identify if the issue is detection-related or if the Windows upgrade 
   - If it shows Pro in Settings but script fails: Detection issue (run activate script again)
   - If it still shows Home/other edition: Re-run the install script
   - Try manual verification: Open CMD and run `dism /online /get-currentedition`
+
+#### "WMIC is not recognized" or parsing errors in detection
+- **Cause**: Script parsing issues or deprecated WMIC command on newer Windows  
+- **Script Response**: Now uses PowerShell instead of deprecated WMIC
+- **Solutions**:
+  - **Updated Script**: This issue is fixed in the latest version
+  - **Manual Check**: Open Settings → System → About to verify Windows edition
+  - **Command Line**: Run `dism /online /get-currentedition` to check edition
+  - **PowerShell Check**: Run `Get-CimInstance -ClassName Win32_OperatingSystem`
 
 #### "Failed to install product key"
 - **Cause**: Network connectivity issues

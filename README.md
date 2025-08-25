@@ -7,6 +7,8 @@
 
 > **🚨 IMPORTANT LEGAL WARNING**: These scripts use KMS activation methods that may violate Microsoft's Terms of Service. Use at your own risk and legal responsibility. Consider purchasing legitimate Windows licenses instead.
 
+> **⚠️ AUTHOR LIABILITY DISCLAIMER**: The script author is NOT responsible for any consequences of using this script, including system damage, legal issues, data loss, or any other negative outcomes. By using this script, you assume ALL risks and hold the author harmless.
+
 A comprehensive set of batch scripts to upgrade any Windows edition to Windows 11 Pro and activate it using KMS activation methods.
 
 ## 🚀 Features
@@ -36,8 +38,7 @@ After successfully running these scripts, you'll have access to:
 
 | File | Description |
 |------|-------------|
-| `install-windows-11-pro.bat` | Upgrades current Windows edition to Pro |
-| `activate-windows-11-pro.bat` | Activates Windows 11 Pro using KMS |
+| `windows-11-pro.bat` | All-in-one script - detects Windows state and runs install OR activate automatically |
 | `README.md` | This documentation file |
 
 ## 🛠️ Prerequisites
@@ -60,54 +61,100 @@ The scripts will automatically check if your Windows edition can be upgraded to 
 
 ## 📖 Usage Instructions
 
-### Method 1: Step-by-Step Process (Recommended)
+**One script does everything automatically!**
 
-#### Step 1: Install Windows 11 Pro
-
-1. **Right-click** on `install-windows-11-pro.bat`
-2. Select **"Run as administrator"**
+1. **Right-click** on `windows-11-pro.bat`
+2. Select **"Run as administrator"**  
 3. Follow the on-screen prompts
-4. **Restart your computer** when prompted
-5. Wait for Windows to complete the Pro installation
+4. The script will automatically:
+   - **Detect** if Windows 11 Pro is installed
+   - **Install** Windows 11 Pro if not detected (then immediate restart)
+   - **Activate** Windows 11 Pro if already installed
+5. **If installation was needed**: Restart immediately and run the script again to activate (clear instructions provided)
 
-#### Step 2: Activate Windows 11 Pro
-
-1. After restart and Pro installation is complete
-2. **Right-click** on `activate-windows-11-pro.bat`
-3. Select **"Run as administrator"**
-4. Follow the on-screen prompts
-5. Verify activation in Settings → System → About
-
-### Method 2: Quick Setup
-
-For experienced users who want to run both scripts in sequence:
+### Command Line Usage
 
 ```batch
-# Run as Administrator
-install-windows-11-pro.bat
-# Restart computer when prompted
-# After restart, run:
-activate-windows-11-pro.bat
+# Run the script:
+windows-11-pro.bat
+
+# The script handles everything automatically based on your system state
 ```
 
-## 🔍 What the Scripts Do
+That's it! No multiple scripts, no manual steps - just one script that intelligently handles your entire Windows 11 Pro upgrade and activation process.
 
-### Installation Script (`install-windows-11-pro.bat`)
+## 🔍 What the Script Does
 
-1. **Privilege Check**: Verifies administrator rights
-2. **License Backup**: Displays and saves current Windows license information
-   - Shows current product key and edition details
-   - Prompts user to save this information for potential restoration
-   - Critical for troubleshooting or reverting changes
-3. **Compatibility Check**: Scans your Windows edition for Pro upgrade support
-   - ✅ **If compatible**: Shows all available upgrade editions and proceeds
-   - ❌ **If incompatible**: Displays supported editions and alternative solutions
-4. **Key Removal**: Removes existing product keys (`slmgr.vbs /upk`)
-5. **Registry Cleanup**: Clears product key from registry (`slmgr.vbs /cpky`)
-6. **KMS Reset**: Clears existing KMS settings (`slmgr.vbs /ckms`)
-7. **Service Setup**: Configures License Manager and Windows Update services
-8. **Edition Upgrade**: Installs Windows 11 Pro using generic product key
-9. **Restart Prompt**: Guides user through restart process
+### Windows 11 Pro Script (`windows-11-pro.bat`)
+
+**The all-in-one solution that automatically handles everything:**
+
+1. **Administrator Check**: Verifies admin privileges
+2. **Legal Warnings**: Interactive consent for KMS activation risks  
+3. **Smart Detection**: Uses 3 methods to detect Windows 11 Pro installation:
+   - SystemInfo check (improved parsing)
+   - PowerShell WMI check (modern, reliable)
+   - DISM check (most authoritative)
+4. **Intelligent Routing**:
+   - **If Pro NOT detected** → Runs complete installation process
+   - **If Pro IS detected + NOT activated** → Runs activation process  
+   - **If Pro IS detected + ALREADY activated** → Shows success and exits
+5. **Complete Process**: Handles license backup, edition checking, installation, and activation
+
+**Workflow Examples:**
+
+**Scenario 1 - Pro Not Installed:**
+```
+[DETECTED] Windows 11 Pro is NOT installed  
+[ACTION] Proceeding to INSTALLATION process...
+(Runs full install)
+
+================================================================
+                      IMPORTANT NEXT STEPS
+================================================================
+
+1. Your computer MUST restart to complete Pro installation
+2. After restart, RE-RUN THIS SAME SCRIPT to activate Windows 11 Pro
+3. The script will detect Pro is installed and run activation automatically
+
+================================================================
+
+CRITICAL: Please read the above instructions carefully!
+After restart, you MUST run this same script again for activation.
+
+Do you want to restart now? (Y/N): Y
+
+Restarting immediately...
+```
+
+**Scenario 2 - Pro Installed, Not Activated:**
+```
+[DETECTED] Windows 11 Pro is already installed!
+[DETECTED] Windows 11 Pro is installed but NOT ACTIVATED
+[ACTION] Proceeding to ACTIVATION process...
+(Runs activation)
+
+================================================================
+                     Activation Successful!
+================================================================
+
+[SUCCESS] Windows 11 Pro has been activated successfully!
+
+You now have full access to all Windows 11 Pro features:
+ - BitLocker encryption
+ - Remote Desktop (host)
+ - Group Policy Editor
+ - Hyper-V virtualization
+ - Windows Sandbox
+ - Domain Join capabilities
+```
+
+**Scenario 3 - Pro Installed and Already Activated:**
+```
+[DETECTED] Windows 11 Pro is already installed!
+[DETECTED] Windows 11 Pro is ALREADY ACTIVATED!
+[SUCCESS] No further action needed!
+```
 
 #### Smart Edition Detection
 
@@ -128,7 +175,7 @@ Available upgrade editions on your system:
 ```
 [ERROR] Your Windows edition CANNOT be upgraded to Pro
 
-Available Upgrade Editions:
+                  Available Upgrade Editions:
 ----------------------------------------------------------------
   Target Edition : Home Single Language  
   Target Edition : Education
@@ -140,24 +187,9 @@ WHAT YOU CAN DO:
 3. Consider a clean Windows 11 Pro installation
 ```
 
-### Activation Script (`activate-windows-11-pro.bat`)
-
-1. **Enhanced System Verification**: Uses 3 detection methods to confirm Windows 11 Pro
-   - SystemInfo check (traditional method, improved parsing)
-   - PowerShell WMI check (modern replacement for deprecated WMIC)
-   - DISM check (most authoritative Windows edition detection)
-2. **License Status Display**: Shows current Windows license state before activation
-   - Current product key and edition information
-   - Activation status and expiration details
-   - Useful for troubleshooting and comparison
-3. **Product Key Installation**: Installs KMS client key (`slmgr /ipk`)
-4. **KMS Server Setup**: Configures KMS server (`slmgr /skms`)
-5. **Activation**: Attempts online activation (`slmgr /ato`)
-6. **Status Verification**: Optional activation status display
-
 #### Triple Detection System
 
-If the activation script can't detect Windows 11 Pro, it will show detailed diagnostic information:
+The script uses 3 detection methods to verify Windows 11 Pro installation:
 
 ```
 [CHECK] Verifying Windows 11 Pro installation...
@@ -175,12 +207,12 @@ This helps identify if the issue is detection-related or if the Windows upgrade 
 
 #### License Backup & Status Display
 
-Both scripts now provide comprehensive license information:
+The script provides comprehensive license information during both installation and activation phases:
 
-**Install Script - License Backup:**
+**Installation Phase - License Backup:**
 ```
 ----------------------------------------------------------------
-                  CURRENT LICENSE BACKUP
+                     CURRENT LICENSE BACKUP
 ----------------------------------------------------------------
 
 Your current Windows license details (SAVE THIS INFO):
@@ -196,10 +228,10 @@ FULL OEM Product Key: XXXXX-XXXXX-XXXXX-XXXXX-NKJV6
 Have you saved the license information above? (Y/N):
 ```
 
-**Activate Script - Pre-Activation Status:**
+**Activation Phase - Pre-Activation Status:**
 ```
 ----------------------------------------------------------------
-              CURRENT LICENSE STATUS (Pre-Activation)  
+             CURRENT LICENSE STATUS (Pre-Activation)
 ----------------------------------------------------------------
 
 Your current Windows license status:
@@ -312,7 +344,7 @@ The install script attempts to retrieve your **complete 25-character product key
 ### Common Issues and Solutions
 
 #### "This script must be run as Administrator"
-- **Solution**: Right-click the script → "Run as administrator"
+- **Solution**: Right-click `windows-11-pro.bat` → "Run as administrator"
 
 #### "Your Windows edition cannot be upgraded to Pro"
 - **Cause**: Your current Windows edition doesn't support direct upgrade to Pro
@@ -332,13 +364,13 @@ The install script attempts to retrieve your **complete 25-character product key
   - **ProduKey Tool**: Download free utility from Nirsoft
   - **Command Line**: Run `wmic path softwarelicensingservice get OA3xOriginalProductKey`
 
-#### "Windows 11 Pro is not detected" (after install script + restart)
+#### "Windows 11 Pro is not detected" (after installation + restart)
 - **Cause**: Windows edition upgrade may have failed or only partially completed
 - **Script Response**: Shows detection results from 3 different methods for diagnosis
 - **Solutions**:
   - Check Settings → System → About to see if it shows "Windows 11 Pro"
-  - If it shows Pro in Settings but script fails: Detection issue (run activate script again)
-  - If it still shows Home/other edition: Re-run the install script
+  - If it shows Pro in Settings but script fails: Detection issue (run script again)
+  - If it still shows Home/other edition: Re-run the script to attempt installation again
   - Try manual verification: Open CMD and run `dism /online /get-currentedition`
 
 #### "WMIC is not recognized" or parsing errors in detection
@@ -456,6 +488,34 @@ If you encounter issues or have improvements to suggest:
 ## 📄 License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+## 🚨 AUTHOR LIABILITY DISCLAIMER
+
+**THE SCRIPT AUTHOR IS NOT RESPONSIBLE FOR ANY CONSEQUENCES OF USING THIS SCRIPT**
+
+By downloading, running, or using this script in any way, you acknowledge and agree that:
+
+### 🛡️ No Responsibility for Damages
+The author assumes **NO LIABILITY** for any consequences, including but not limited to:
+- 💻 **System damage, corruption, or failure to boot**
+- 📁 **Data loss or file corruption** 
+- 🔧 **Windows installation damage requiring reinstallation**
+- ⚖️ **Legal consequences from Microsoft Terms of Service violations**
+- 🚫 **Account suspensions, bans, or activation failures**
+- 💰 **Financial costs for system repair or legitimate licenses**
+- ⏰ **Time loss or productivity impact**
+- 🔗 **Any other direct, indirect, or consequential damages**
+
+### 📋 Your Acknowledgment
+By using this script, you explicitly acknowledge that:
+- ✅ You assume **ALL RISKS** associated with using this script
+- ✅ You have been warned of potential legal and technical risks
+- ✅ You will not hold the author liable for any negative outcomes
+- ✅ You understand Microsoft may take action against unauthorized activation
+- ✅ You are responsible for any consequences of your actions
+
+### ⚖️ Legal Recommendation
+**STRONGLY RECOMMENDED**: Purchase legitimate Windows 11 Pro licenses from [Microsoft](https://www.microsoft.com/store/windows) instead of using these methods.
 
 ## ⚠️ FINAL LEGAL DISCLAIMER & RISK ACKNOWLEDGMENT
 
